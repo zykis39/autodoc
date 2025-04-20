@@ -6,6 +6,7 @@
 //
 import Combine
 import UIKit
+import DifferenceKit
 
 final class NewsFeedViewController: UIViewController {
     var collectionView: UICollectionView!
@@ -22,10 +23,13 @@ final class NewsFeedViewController: UIViewController {
         super.viewDidLoad()
         configureViewModel()
         configureCollectionView()
-        viewModel.$news
+        viewModel.$newsDataSource
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.collectionView.reloadData()
+            .map { StagedChangeset(source: $0.data, target: $0.data + $0.newData) }
+            .sink { [weak self] changeset in
+                self?.collectionView.reload(using: changeset) { data in
+                    self?.viewModel.newsDataSource = .init(data: data, newData: [])
+                }
         }.store(in: &cancellables)
         viewModel.getNews()
     }
@@ -38,7 +42,6 @@ final class NewsFeedViewController: UIViewController {
         viewModel = NewsFeedViewModel(service: service,
                                       router: .init(navigationController: navigationController),
                                       showError: showError(error:),
-                                      news: [],
                                       currentPage: 1)
     }
     
@@ -86,15 +89,15 @@ final class NewsFeedViewController: UIViewController {
 // MARK: - UICollectionViewDataSource
 extension NewsFeedViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        viewModel?.news.count ?? 0
+        viewModel?.newsDataSource.data.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? NewsFeedCell else { return UICollectionViewCell() }
-        let cellData = viewModel.news[indexPath.row]
+        let cellData = viewModel.newsDataSource.data[indexPath.row]
         cell.configure(imageUrl: cellData.titleImageUrl, text: cellData.title)
         
-        if indexPath.row == viewModel.news.count - 1 {
+        if indexPath.row == viewModel.newsDataSource.data.count - 1 {
             viewModel.getNews()
         }
         

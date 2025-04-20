@@ -5,10 +5,10 @@
 //  Created by Артём Зайцев on 08.04.2025.
 //
 
-
+import DifferenceKit
 import Foundation
 
-public struct NewsFeedElement: Codable {
+public struct NewsFeedElement: Codable, Sendable {
     /// "id": 8418,
     /// "title": "Новая модификация Maserati GranCabrio",
     /// "description": "Maserati представила начальную версию GranCabrio",
@@ -40,6 +40,19 @@ public struct NewsFeedElement: Codable {
         self.fullUrl = try container.decode(URL.self, forKey: .fullUrl)
         self.titleImageUrl = try container.decode(URL.self, forKey: .titleImageUrl)
         self.categoryType = try container.decode(String.self, forKey: .categoryType)
+    }
+}
+
+extension NewsFeedElement: Differentiable {
+    public var differenceIdentifier: some Hashable {
+        return id
+    }
+    
+    public func isContentEqual(to source: NewsFeedElement) -> Bool {
+        self.title == source.title &&
+        self.description == source.description &&
+        self.url == source.url &&
+        self.fullUrl == source.fullUrl
     }
 }
 
