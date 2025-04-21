@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "closure #1 in NewsFeedViewController.viewDidLoad():NewsFeedViewController.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "data.map { $0.id }">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

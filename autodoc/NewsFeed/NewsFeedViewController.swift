@@ -6,12 +6,12 @@
 //
 import Combine
 import UIKit
-import DifferenceKit
 
 final class NewsFeedViewController: UIViewController {
     var collectionView: UICollectionView!
     var viewModel: NewsFeedViewModel!
     var cancellables: Set<AnyCancellable> = []
+    lazy var datasource = makeDataSource()
 
     deinit {
         cancellables.forEach { $0.cancel() }
@@ -23,14 +23,18 @@ final class NewsFeedViewController: UIViewController {
         super.viewDidLoad()
         configureViewModel()
         configureCollectionView()
-        viewModel.$newsDataSource
+        viewModel.$data
             .receive(on: DispatchQueue.main)
-            .map { StagedChangeset(source: $0.data, target: $0.data + $0.newData) }
-            .sink { [weak self] changeset in
-                self?.collectionView.reload(using: changeset) { data in
-                    self?.viewModel.newsDataSource = .init(data: data, newData: [])
-                }
-        }.store(in: &cancellables)
+            .map { data in
+                var snapshot = NSDiffableDataSourceSnapshot<Int, Int>()
+                snapshot.appendSections([0])
+                snapshot.appendItems(data.map { $0.id })
+                return snapshot
+            }
+            .sink { [weak self] snapshot in
+                self?.datasource.apply(snapshot)
+            }
+            .store(in: &cancellables)
         viewModel.getNews()
     }
         
@@ -49,7 +53,7 @@ final class NewsFeedViewController: UIViewController {
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
         collectionView.register(NewsFeedCell.self, forCellWithReuseIdentifier: "cell")
         view.addSubview(collectionView)
-        collectionView.dataSource = self
+        collectionView.dataSource = datasource
         collectionView.delegate = self
         
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -61,6 +65,16 @@ final class NewsFeedViewController: UIViewController {
         
         view.addConstraints(constraints)
         constraints.forEach { $0.isActive = true }
+    }
+    
+    private func makeDataSource() -> UICollectionViewDiffableDataSource<Int, Int> {
+        UICollectionViewDiffableDataSource<Int, Int>(collectionView: collectionView) { [viewModel] collectionView, indexPath, itemIdentifier in
+            guard let viewModel,
+                  let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? NewsFeedCell,
+                  let cellData = viewModel.data.first(where: { $0.id == itemIdentifier }) else { return UICollectionViewCell() }
+            cell.configure(imageUrl: cellData.titleImageUrl, text: cellData.title)
+            return cell
+        }
     }
     
     private func createLayout() -> UICollectionViewLayout {
@@ -86,29 +100,15 @@ final class NewsFeedViewController: UIViewController {
 }
 
 
-// MARK: - UICollectionViewDataSource
-extension NewsFeedViewController: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        viewModel?.newsDataSource.data.count ?? 0
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? NewsFeedCell else { return UICollectionViewCell() }
-        let cellData = viewModel.newsDataSource.data[indexPath.row]
-        cell.configure(imageUrl: cellData.titleImageUrl, text: cellData.title)
-        
-        if indexPath.row == viewModel.newsDataSource.data.count - 1 {
-            viewModel.getNews()
-        }
-        
-        return cell
-    }
-}
-
-
 // MARK: - UICollectionViewDelegate
 extension NewsFeedViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         viewModel.didSelectElementAtIndex(indexPath.row)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        if indexPath.row == viewModel.data.count - 1 {
+            viewModel.getNews()
+        }
     }
 }
