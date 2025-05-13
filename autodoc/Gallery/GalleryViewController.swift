@@ -18,7 +18,8 @@ final class GalleryViewController: UIViewController {
     }
     
     private lazy var collectionViewLayout = GalleryCompositionLayout()
-    private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
+    private lazy var collectionView = UICollectionView(frame: .zero,
+                                                       collectionViewLayout: collectionViewLayout)
         .set(\.backgroundColor, to: Constants.backgroundColor)
         .set(\.alwaysBounceVertical, to: false)
     private let subtitleLabel = UILabel()
@@ -30,7 +31,8 @@ final class GalleryViewController: UIViewController {
     
     private let viewModel: GalleryViewModel
     private var cancellables: Set<AnyCancellable> = []
-    private lazy var dataSource = GalleryDiffableDataSource(imageURLs: viewModel.imageURLs, collectionView: collectionView)
+    private lazy var dataSource = GalleryDiffableDataSource(imageURLs: viewModel.imageURLs,
+                                                            collectionView: collectionView)
     
     init(imageURLs: [URL], subtitle: String? = nil) {
         self.viewModel = GalleryViewModel(subtitle: subtitle, imageURLs: imageURLs)
@@ -48,10 +50,6 @@ final class GalleryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setup()
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
     }
     
     // MARK: - Private

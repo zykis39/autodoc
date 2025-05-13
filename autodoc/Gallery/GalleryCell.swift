@@ -15,6 +15,9 @@ final class GalleryCell: UICollectionViewCell {
     }
     
     private let imageView = UIImageView()
+        .set(\.translatesAutoresizingMaskIntoConstraints, to: false)
+        .set(\.contentMode, to: .scaleAspectFill)
+        .set(\.clipsToBounds, to: true)
     private var imageFetchTask: Task<UIImage, Error>?
     static let reuseIdentifier = "gallery_cell"
     
@@ -31,9 +34,6 @@ final class GalleryCell: UICollectionViewCell {
     private func commonInit() {
         contentView.backgroundColor = Constants.backgroundColor
         contentView.addSubview(imageView)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
         
         let topConstraint = imageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Constants.vInset)
         let bottomConstraint = imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Constants.vInset)
