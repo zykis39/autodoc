@@ -28,7 +28,6 @@ final class GalleryViewController: UIViewController {
         .set(\.textColor, to: Constants.labelTextColor)
         .set(\.font, to: .systemFont(ofSize: Constants.labelFontSize))
     private let pageControl = UIPageControl()
-    
     private let viewModel: GalleryViewModel
     private var cancellables: Set<AnyCancellable> = []
     private lazy var dataSource = GalleryDiffableDataSource(imageURLs: viewModel.imageURLs,

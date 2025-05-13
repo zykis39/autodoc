@@ -16,7 +16,7 @@ final class NewsFeedViewModel {
         // TODO: provide image urls
         let urls: [URL] = {
             var absoluteStrings: [String] = []
-            for i in 1 ..< 3 {
+            for i in 1 ..< 24 {
                 absoluteStrings.append("https://file.autodoc.ru/news/avto-novosti/2854777875_\(i).jpg")
             }
             return absoluteStrings.compactMap { URL(string: $0) }

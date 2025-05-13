@@ -18,7 +18,7 @@ final class GalleryCell: UICollectionViewCell {
         .set(\.translatesAutoresizingMaskIntoConstraints, to: false)
         .set(\.contentMode, to: .scaleAspectFill)
         .set(\.clipsToBounds, to: true)
-    private var imageFetchTask: Task<UIImage, Error>?
+    private var imageFetchTask: Task<Void, Error>?
     static let reuseIdentifier = "gallery_cell"
     
     override init(frame: CGRect) {
@@ -47,7 +47,8 @@ final class GalleryCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         imageView.image = nil
-        // TODO: should be cancelled or not?
+        /// if task not cancelled, random image can be applied to cell
+        /// due to network request / postprocessing delay
         imageFetchTask?.cancel()
     }
     
@@ -57,16 +58,9 @@ final class GalleryCell: UICollectionViewCell {
     }
     
     func configure(url: URL) {
-        // TODO: refactor?
-        imageFetchTask = Task {
+        imageFetchTask = Task { [weak self] in
             let (data, _) = try await URLSession.shared.data(from: url)
-            guard let image = UIImage(data: data) else { throw NSError(domain: "", code: -1) }
-            return image
-        }
-        
-        Task { [weak self] in
-            let result = await self?.imageFetchTask?.result
-            guard case let .success(image) = result else { return }
+            guard let image = UIImage(data: data) else { return }
             let processedImage: UIImage = { [image] in
                 guard !image.isPortraitOriented else { return image }
                 return image.rotate(radians: .pi / 2)
