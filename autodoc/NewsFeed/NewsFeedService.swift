@@ -23,7 +23,7 @@ public struct NewsFeedElement: Codable, Sendable {
     let publishedDate: Date?
     let url: URL
     let fullUrl: URL
-    let titleImageUrl: URL
+    let titleImageUrl: URL?
     let categoryType: String
     
     public init(from decoder: any Decoder) throws {
@@ -37,7 +37,7 @@ public struct NewsFeedElement: Codable, Sendable {
         self.publishedDate = date
         self.url = try container.decode(URL.self, forKey: .url)
         self.fullUrl = try container.decode(URL.self, forKey: .fullUrl)
-        self.titleImageUrl = try container.decode(URL.self, forKey: .titleImageUrl)
+        self.titleImageUrl = try? container.decode(URL.self, forKey: .titleImageUrl)
         self.categoryType = try container.decode(String.self, forKey: .categoryType)
     }
 }

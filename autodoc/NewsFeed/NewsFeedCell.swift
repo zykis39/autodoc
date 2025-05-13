@@ -23,6 +23,9 @@ final class NewsFeedCell: UICollectionViewCell {
     }
     
     private func commonInit() {
+        contentView.backgroundColor = .lightGray
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
         [imageView, label].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
         [imageView, label].forEach { contentView.addSubview($0) }
         label.numberOfLines = 0
@@ -51,8 +54,10 @@ final class NewsFeedCell: UICollectionViewCell {
         imageFetchTask?.cancel()
     }
     
-    func configure(imageUrl: URL, text: String) {
+    func configure(imageUrl: URL?, text: String) {
         label.text = text
+        guard let imageUrl else { return }
+        
         if let cachedImage = ImageCache.shared.cache.object(forKey: imageUrl.absoluteString as NSString) {
             imageView.image = cachedImage
             return

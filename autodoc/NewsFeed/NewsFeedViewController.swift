@@ -81,16 +81,18 @@ final class NewsFeedViewController: UIViewController {
         let isIPad = UIDevice.current.userInterfaceIdiom == .pad
         
         let itemSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1.0),
+            widthDimension: .fractionalWidth(isIPad ? 0.5 : 1.0),
             heightDimension: .fractionalHeight(1.0))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .absolute(isIPad ? 200 : 84))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitem: item, count: isIPad ? 2 : 1)
+            heightDimension: .absolute(isIPad ? 200 : 84)) // 20pt  -vertical
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, repeatingSubitem: item, count: isIPad ? 2 : 1)
+        group.interItemSpacing = .fixed(20)
         
         let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 20
         
         let layout = UICollectionViewCompositionalLayout(section: section)
         return layout

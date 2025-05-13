@@ -9,6 +9,7 @@ import WebKit
 
 public protocol NewsFeedRoutable {
     @MainActor func showDetailed(url: URL)
+    @MainActor func showGallery(imageURLs: [URL], subtitle: String?)
 }
 
 final class NewsFeedRouter: NewsFeedRoutable {
@@ -21,6 +22,11 @@ final class NewsFeedRouter: NewsFeedRoutable {
     func showDetailed(url: URL) {
         let config = WKWebViewConfiguration()
         let vc = WebViewController(configuration: config, url: url)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func showGallery(imageURLs: [URL], subtitle: String?) {
+        let vc = GalleryViewController(imageURLs: imageURLs, subtitle: subtitle)
         navigationController?.pushViewController(vc, animated: true)
     }
 }

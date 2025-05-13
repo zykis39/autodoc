@@ -13,7 +13,18 @@ final class NewsFeedViewModel {
     let showError: @MainActor (NewsFeedServiceError) -> Void
     lazy var didSelectElementAtIndex: @MainActor (Int) -> Void = { [weak self] index in
         guard let element = self?.data[index] else { return }
-        self?.router.showDetailed(url: element.fullUrl)
+        // TODO: provide image urls
+        let urls: [URL] = {
+            var absoluteStrings: [String] = []
+            for i in 1 ..< 3 {
+                absoluteStrings.append("https://file.autodoc.ru/news/avto-novosti/2854777875_\(i).jpg")
+            }
+            return absoluteStrings.compactMap { URL(string: $0) }
+        }()
+        let subtitle: String = "Производитель оставляет за собой право вносить изменения в конструкцию изделий"
+        
+        self?.router.showGallery(imageURLs: urls, subtitle: subtitle)
+//        self?.router.showGallery(imageURLs: urls, subtitle: nil)
     }
     
     @Published var data: [NewsFeedElement] = []
