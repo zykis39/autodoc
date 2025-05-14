@@ -12,7 +12,7 @@ final class GalleryViewController: UIViewController {
     private enum Constants {
         static let pageControlHeight: CGFloat = 44
         static let hInset: CGFloat = 16
-        static let backgroundColor: UIColor = .darkGray
+        static let backgroundColor: UIColor = UIColor.init(hex: "#121214FF")!
         static let labelTextColor: UIColor = .white.withAlphaComponent(0.84)
         static let labelFontSize: CGFloat = 12
     }

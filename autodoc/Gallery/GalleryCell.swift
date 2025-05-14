@@ -11,7 +11,7 @@ final class GalleryCell: UICollectionViewCell {
     private enum Constants {
         static let vInset: CGFloat = 32
         static let cornerRadius: CGFloat = 8
-        static let backgroundColor: UIColor = .lightGray
+        static let backgroundColor: UIColor = UIColor.init(hex: "#1B1B1DFF")!
     }
     
     private let imageView = UIImageView()
@@ -49,6 +49,7 @@ final class GalleryCell: UICollectionViewCell {
         imageView.image = nil
         /// if task not cancelled, random image can be applied to cell
         /// due to network request / postprocessing delay
+        // TODO: check with NetworkLinkConditioner high latency
         imageFetchTask?.cancel()
     }
     
