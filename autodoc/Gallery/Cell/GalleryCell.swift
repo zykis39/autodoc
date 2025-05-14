@@ -5,6 +5,7 @@
 //  Created by Артём Зайцев on 12.05.2025.
 //
 
+import Combine
 import UIKit
 
 final class GalleryCell: UICollectionViewCell {
@@ -18,7 +19,7 @@ final class GalleryCell: UICollectionViewCell {
         .set(\.translatesAutoresizingMaskIntoConstraints, to: false)
         .set(\.contentMode, to: .scaleAspectFill)
         .set(\.clipsToBounds, to: true)
-    private var imageFetchTask: Task<Void, Error>?
+    private var cancellables = Set<AnyCancellable>()
     static let reuseIdentifier = "gallery_cell"
     
     override init(frame: CGRect) {
@@ -35,11 +36,16 @@ final class GalleryCell: UICollectionViewCell {
         contentView.backgroundColor = Constants.backgroundColor
         contentView.addSubview(imageView)
         
-        let topConstraint = imageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Constants.vInset)
-        let bottomConstraint = imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Constants.vInset)
+        let topConstraint = imageView.topAnchor.constraint(equalTo: contentView.topAnchor,
+                                                           constant: Constants.vInset)
+        let bottomConstraint = imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
+                                                                 constant: -Constants.vInset)
         let leadingConstraint = imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
         let trailingConstraint = imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
-        let constraints = [topConstraint, bottomConstraint, leadingConstraint, trailingConstraint]
+        let constraints = [topConstraint,
+                           bottomConstraint,
+                           leadingConstraint,
+                           trailingConstraint]
         contentView.addConstraints(constraints)
         constraints.forEach { $0.isActive = true }
     }
@@ -47,10 +53,8 @@ final class GalleryCell: UICollectionViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         imageView.image = nil
-        /// if task not cancelled, random image can be applied to cell
-        /// due to network request / postprocessing delay
-        // TODO: check with NetworkLinkConditioner high latency
-        imageFetchTask?.cancel()
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
     }
     
     override func layoutSubviews() {
@@ -58,18 +62,11 @@ final class GalleryCell: UICollectionViewCell {
         contentView.layer.cornerRadius = Constants.cornerRadius
     }
     
-    func configure(url: URL) {
-        imageFetchTask = Task { [weak self] in
-            let (data, _) = try await URLSession.shared.data(from: url)
-            guard let image = UIImage(data: data) else { return }
-            let processedImage: UIImage = { [image] in
-                guard !image.isPortraitOriented else { return image }
-                return image.rotate(radians: .pi / 2)
-            }()
-            
-            await MainActor.run {
-                self?.imageView.image = processedImage
-            }
-        }
+    func configure(with viewModel: GalleryItemViewModel) {
+        viewModel.imageSubject
+            .receive(on: DispatchQueue.main)
+            .compactMap { $0 }
+            .assign(to: \.image, on: imageView)
+            .store(in: &cancellables)
     }
 }

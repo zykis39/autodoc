@@ -17,7 +17,7 @@ final class GalleryViewController: UIViewController {
         static let labelFontSize: CGFloat = 12
     }
     
-    private lazy var collectionViewLayout = GalleryCompositionLayout()
+    private lazy var collectionViewLayout = GalleryCompositionLayout(layoutHandler: viewModel.layoutHandler)
     private lazy var collectionView = UICollectionView(frame: .zero,
                                                        collectionViewLayout: collectionViewLayout)
         .set(\.backgroundColor, to: Constants.backgroundColor)
@@ -28,13 +28,12 @@ final class GalleryViewController: UIViewController {
         .set(\.textColor, to: Constants.labelTextColor)
         .set(\.font, to: .systemFont(ofSize: Constants.labelFontSize))
     private let pageControl = UIPageControl()
-    private let viewModel: GalleryViewModel
+    private let viewModel: GalleryViewModel!
     private var cancellables: Set<AnyCancellable> = []
-    private lazy var dataSource = GalleryDiffableDataSource(imageURLs: viewModel.imageURLs,
-                                                            collectionView: collectionView)
     
     init(imageURLs: [URL], subtitle: String? = nil) {
-        self.viewModel = GalleryViewModel(subtitle: subtitle, imageURLs: imageURLs)
+        self.viewModel = GalleryViewModel(subtitle: subtitle,
+                                          imageURLs: imageURLs)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -42,13 +41,10 @@ final class GalleryViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    deinit {
-        cancellables.forEach { $0.cancel() }
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         setup()
+        viewModel.onViewDidLoad()
     }
     
     // MARK: - Private
@@ -65,49 +61,38 @@ final class GalleryViewController: UIViewController {
     }
     
     private func setupCollectionView() {
-        collectionView.register(GalleryCell.self, forCellWithReuseIdentifier: GalleryCell.reuseIdentifier)
-        collectionView.dataSource = dataSource
+        collectionView.register(GalleryCell.self,
+                                forCellWithReuseIdentifier: GalleryCell.reuseIdentifier)
+        collectionView.dataSource = viewModel.makeDataSource(collectionView)
     }
     
     private func setupBindings() {
-        viewModel.$imageURLs
+        viewModel.numberOfPagesSubject
             .receive(on: DispatchQueue.main)
-            .map { data in
-                var snapshot = NSDiffableDataSourceSnapshot<Int, URL>()
-                snapshot.appendSections([0])
-                snapshot.appendItems(data.map { $0 })
-                return snapshot
-            }
-            .sink { [weak self] snapshot in
-                self?.dataSource.apply(snapshot)
-            }
-            .store(in: &cancellables)
-        viewModel.$imageURLs
-            .receive(on: DispatchQueue.main)
-            .map { $0.count }
             .assign(to: \.numberOfPages, on: pageControl)
             .store(in: &cancellables)
-        viewModel.$imageURLs
+        viewModel.numberOfPagesSubject
             .receive(on: DispatchQueue.main)
-            .map { $0.count < 2 }
+            .map { $0 < 2 }
             .assign(to: \.isHidden, on: pageControl)
+            .store(in: &cancellables)
+        viewModel.currentPageSubject
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.currentPage, on: pageControl)
             .store(in: &cancellables)
         viewModel.$subtitle
             .receive(on: DispatchQueue.main)
             .assign(to: \.text, on: subtitleLabel)
             .store(in: &cancellables)
-        collectionViewLayout.currentPageSubject
-            .assign(to: \.currentPage, on: pageControl)
-            .store(in: &cancellables)
     }
     
     private func setupLayout() {
-        let topConstraint = collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
-        let leadingConstraint = collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
-        let trailingConstraint = collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        let constraints = [topConstraint, leadingConstraint, trailingConstraint]
-        view.addConstraints(constraints)
-        constraints.forEach { $0.isActive = true }
+        let cvTopConstraint = collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
+        let cvLeadingConstraint = collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+        let cvTrailingConstraint = collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        let cvConstraints = [cvTopConstraint, cvLeadingConstraint, cvTrailingConstraint]
+        view.addConstraints(cvConstraints)
+        cvConstraints.forEach { $0.isActive = true }
         
         let slTopConstraint = subtitleLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor)
         let slBottomConstraint = subtitleLabel.bottomAnchor.constraint(equalTo: pageControl.safeAreaLayoutGuide.topAnchor)
