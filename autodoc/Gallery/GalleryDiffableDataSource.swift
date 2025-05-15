@@ -12,8 +12,8 @@ final class GalleryDiffableDataSource: UICollectionViewDiffableDataSource<Int, U
          cellRegistration: UICollectionView.CellRegistration<GalleryItemCell, URL>) {
         super.init(collectionView: collectionView) { collectionView, indexPath, url in
             collectionView.dequeueConfiguredReusableCell(using: cellRegistration,
-                                                                for: indexPath,
-                                                                item: url)
+                                                         for: indexPath,
+                                                         item: url)
         }
     }
 }

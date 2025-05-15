@@ -49,7 +49,6 @@ final class GalleryViewController: UIViewController {
     }
     
     // MARK: - Private
-    
     private func setup() {
         view.backgroundColor = Constants.backgroundColor
         [collectionView, subtitleLabel, pageControl].forEach {

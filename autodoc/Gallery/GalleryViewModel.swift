@@ -26,10 +26,11 @@ final class GalleryViewModel {
     }
     
     func makeDataSource(_ collectionView: UICollectionView) -> DataSource {
-        let cellRegistration = UICollectionView.CellRegistration<GalleryItemCell, URL> { (cell: GalleryItemCell, indexPath: IndexPath, url: URL) in
+        let cellRegistration = UICollectionView.CellRegistration<GalleryItemCell, URL>(cellNib: UINib(nibName: GalleryItemCell.nibName, bundle: nil)) { (cell: GalleryItemCell, indexPath: IndexPath, url: URL) in
             let viewModel = GalleryItemViewModel(url: url)
             cell.configure(with: viewModel)
         }
+        
         let dataSource = GalleryDiffableDataSource(collectionView: collectionView, cellRegistration: cellRegistration)
         self.dataSource = dataSource
         return dataSource
