@@ -1,5 +1,5 @@
 //
-//  GalleryCell.swift
+//  GalleryItemCell.swift
 //  autodoc
 //
 //  Created by Артём Зайцев on 12.05.2025.
@@ -8,7 +8,7 @@
 import Combine
 import UIKit
 
-final class GalleryCell: UICollectionViewCell {
+final class GalleryItemCell: UICollectionViewCell {
     private enum Constants {
         static let vInset: CGFloat = 32
         static let cornerRadius: CGFloat = 8
@@ -20,7 +20,7 @@ final class GalleryCell: UICollectionViewCell {
         .set(\.contentMode, to: .scaleAspectFill)
         .set(\.clipsToBounds, to: true)
     private var cancellables = Set<AnyCancellable>()
-    static let reuseIdentifier = "gallery_cell"
+    static let reuseIdentifier = "gallery_item_cell"
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -30,24 +30,6 @@ final class GalleryCell: UICollectionViewCell {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         commonInit()
-    }
-    
-    private func commonInit() {
-        contentView.backgroundColor = Constants.backgroundColor
-        contentView.addSubview(imageView)
-        
-        let topConstraint = imageView.topAnchor.constraint(equalTo: contentView.topAnchor,
-                                                           constant: Constants.vInset)
-        let bottomConstraint = imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
-                                                                 constant: -Constants.vInset)
-        let leadingConstraint = imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
-        let trailingConstraint = imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
-        let constraints = [topConstraint,
-                           bottomConstraint,
-                           leadingConstraint,
-                           trailingConstraint]
-        contentView.addConstraints(constraints)
-        constraints.forEach { $0.isActive = true }
     }
     
     override func prepareForReuse() {
@@ -67,5 +49,24 @@ final class GalleryCell: UICollectionViewCell {
             .receive(on: DispatchQueue.main)
             .assign(to: \.image, on: imageView)
             .store(in: &cancellables)
+    }
+    
+    // MARK: - Private
+    private func commonInit() {
+        contentView.backgroundColor = Constants.backgroundColor
+        contentView.addSubview(imageView)
+        
+        let topConstraint = imageView.topAnchor.constraint(equalTo: contentView.topAnchor,
+                                                           constant: Constants.vInset)
+        let bottomConstraint = imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
+                                                                 constant: -Constants.vInset)
+        let leadingConstraint = imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
+        let trailingConstraint = imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+        let constraints = [topConstraint,
+                           bottomConstraint,
+                           leadingConstraint,
+                           trailingConstraint]
+        contentView.addConstraints(constraints)
+        constraints.forEach { $0.isActive = true }
     }
 }

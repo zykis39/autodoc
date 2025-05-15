@@ -61,8 +61,8 @@ final class GalleryViewController: UIViewController {
     }
     
     private func setupCollectionView() {
-        collectionView.register(GalleryCell.self,
-                                forCellWithReuseIdentifier: GalleryCell.reuseIdentifier)
+        collectionView.register(GalleryItemCell.self,
+                                forCellWithReuseIdentifier: GalleryItemCell.reuseIdentifier)
         collectionView.dataSource = viewModel.makeDataSource(collectionView)
     }
     

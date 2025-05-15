@@ -12,8 +12,8 @@ final class GalleryDiffableDataSource: UICollectionViewDiffableDataSource<Int, U
     private static func cellProvider(collectionView: UICollectionView,
                                      indexPath: IndexPath,
                                      url: URL) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GalleryCell.reuseIdentifier,
-                                                            for: indexPath) as? GalleryCell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GalleryItemCell.reuseIdentifier,
+                                                            for: indexPath) as? GalleryItemCell
         else { return UICollectionViewCell() }
         
         let viewModel = GalleryItemViewModel(url: url)
