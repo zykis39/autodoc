@@ -12,7 +12,6 @@ import UIKit
 final class GalleryViewModel {
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, URL>
     typealias DataSource = UICollectionViewDiffableDataSource<Int, URL>
-    typealias LayoutHandler = NSCollectionLayoutSectionVisibleItemsInvalidationHandler
     
     private var dataSource: DataSource?
     private let imageURLs: [URL]
@@ -36,17 +35,14 @@ final class GalleryViewModel {
                        scrollOffset: CGPoint,
                        layoutEnvironment: any NSCollectionLayoutEnvironment) {
         guard let lastIndex = visibleItems.last?.indexPath.row else { return }
-        
         guard visibleItems.count > 1 else {
             currentPageSubject.send(lastIndex)
             return
         }
         
         let width = layoutEnvironment.container.contentSize.width
-        
         let itemOffset = Double(Int(scrollOffset.x) % Int(width))
         let moreThenHalf = itemOffset > width / 2
-        
         let index = Int(floor(scrollOffset.x / width)) + (moreThenHalf ? 1 : 0)
         currentPageSubject.send(index)
     }

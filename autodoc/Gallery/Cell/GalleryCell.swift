@@ -65,7 +65,6 @@ final class GalleryCell: UICollectionViewCell {
     func configure(with viewModel: GalleryItemViewModel) {
         viewModel.imageSubject
             .receive(on: DispatchQueue.main)
-            .compactMap { $0 }
             .assign(to: \.image, on: imageView)
             .store(in: &cancellables)
     }

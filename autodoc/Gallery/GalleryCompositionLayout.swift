@@ -9,13 +9,11 @@ import Combine
 import UIKit
 
 final class GalleryCompositionLayout: UICollectionViewCompositionalLayout {
-    typealias LayoutHandler = NSCollectionLayoutSectionVisibleItemsInvalidationHandler
-    
     private enum Constants {
         static let inset: CGFloat = 16
     }
 
-    init(layoutHandler: @escaping LayoutHandler) {
+    init(layoutHandler: @escaping NSCollectionLayoutSectionVisibleItemsInvalidationHandler) {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
             heightDimension: .fractionalHeight(1.0))
