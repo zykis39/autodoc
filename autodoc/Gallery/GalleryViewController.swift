@@ -43,6 +43,7 @@ final class GalleryViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         setup()
         viewModel.onViewDidLoad()
     }
@@ -55,34 +56,35 @@ final class GalleryViewController: UIViewController {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
+        subtitleLabel.text = viewModel.subtitle
         setupCollectionView()
         setupBindings()
         setupLayout()
     }
     
     private func setupCollectionView() {
-        collectionView.register(GalleryItemCell.self,
-                                forCellWithReuseIdentifier: GalleryItemCell.reuseIdentifier)
         collectionView.dataSource = viewModel.makeDataSource(collectionView)
     }
     
     private func setupBindings() {
         viewModel.numberOfPagesSubject
             .receive(on: DispatchQueue.main)
-            .assign(to: \.numberOfPages, on: pageControl)
+            .sink { [weak self] numberOfPages in
+                self?.pageControl.numberOfPages = numberOfPages
+            }
             .store(in: &cancellables)
         viewModel.numberOfPagesSubject
             .receive(on: DispatchQueue.main)
             .map { $0 < 2 }
-            .assign(to: \.isHidden, on: pageControl)
+            .sink { [weak self] isHidden in
+                self?.pageControl.isHidden = isHidden
+            }
             .store(in: &cancellables)
         viewModel.currentPageSubject
             .receive(on: DispatchQueue.main)
-            .assign(to: \.currentPage, on: pageControl)
-            .store(in: &cancellables)
-        viewModel.$subtitle
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.text, on: subtitleLabel)
+            .sink { [weak self] currentPage in
+                self?.pageControl.currentPage = currentPage
+            }
             .store(in: &cancellables)
     }
     

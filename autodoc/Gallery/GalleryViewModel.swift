@@ -15,7 +15,7 @@ final class GalleryViewModel {
     
     private var dataSource: DataSource?
     private let imageURLs: [URL]
-    @Published var subtitle: String?
+    let subtitle: String?
     var numberOfPagesSubject = CurrentValueSubject<Int, Never>(0)
     var currentPageSubject = CurrentValueSubject<Int, Never>(0)
     
@@ -26,7 +26,11 @@ final class GalleryViewModel {
     }
     
     func makeDataSource(_ collectionView: UICollectionView) -> DataSource {
-        let dataSource = GalleryDiffableDataSource(collectionView: collectionView)
+        let cellRegistration = UICollectionView.CellRegistration<GalleryItemCell, URL> { (cell: GalleryItemCell, indexPath: IndexPath, url: URL) in
+            let viewModel = GalleryItemViewModel(url: url)
+            cell.configure(with: viewModel)
+        }
+        let dataSource = GalleryDiffableDataSource(collectionView: collectionView, cellRegistration: cellRegistration)
         self.dataSource = dataSource
         return dataSource
     }

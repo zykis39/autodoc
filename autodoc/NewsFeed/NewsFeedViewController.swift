@@ -21,6 +21,7 @@ final class NewsFeedViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         configureViewModel()
         configureCollectionView()
         viewModel.$data

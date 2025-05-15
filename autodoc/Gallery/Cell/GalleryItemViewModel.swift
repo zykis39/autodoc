@@ -9,32 +9,20 @@ import Combine
 import UIKit
 
 final class GalleryItemViewModel {
-    var imageSubject = PassthroughSubject<UIImage?, Never>()
-    var imageFetchTask: Task<Void, Error>?
+    private let url: URL
     
     init(url: URL) {
-        setup(with: url)
+        self.url = url
     }
     
-    deinit {
-        imageFetchTask?.cancel()
-    }
-    
-    func setup(with url: URL) {
-        imageFetchTask = Task {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            guard let image = UIImage(data: data) else {
-                imageSubject.send(nil)
-                return
-            }
-            let processedImage: UIImage = { [image] in
-                guard !image.isPortraitOriented else { return image }
-                return image.rotate(radians: .pi / 2)
-            }()
-            
-            await MainActor.run {
-                imageSubject.send(processedImage)
-            }
-        }
+    func getImage() async throws -> UIImage? {
+        let (data, _) = try await URLSession.shared.data(from: url)
+        guard let image = UIImage(data: data) else { return nil }
+        let processedImage: UIImage = { [image] in
+            guard !image.isPortraitOriented else { return image }
+            return image.rotate(radians: .pi / 2)
+        }()
+        
+        return processedImage
     }
 }

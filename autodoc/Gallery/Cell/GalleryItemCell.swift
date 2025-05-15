@@ -20,35 +20,37 @@ final class GalleryItemCell: UICollectionViewCell {
         .set(\.contentMode, to: .scaleAspectFill)
         .set(\.clipsToBounds, to: true)
     private var cancellables = Set<AnyCancellable>()
-    static let reuseIdentifier = "gallery_item_cell"
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
         commonInit()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        
         commonInit()
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        
         imageView.image = nil
-        cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
+        
         contentView.layer.cornerRadius = Constants.cornerRadius
     }
     
     func configure(with viewModel: GalleryItemViewModel) {
-        viewModel.imageSubject
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.image, on: imageView)
-            .store(in: &cancellables)
+        Task { [weak self] in
+            let image = try? await viewModel.getImage()
+            self?.imageView.image = image
+        }
     }
     
     // MARK: - Private

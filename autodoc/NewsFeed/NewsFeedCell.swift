@@ -14,11 +14,13 @@ final class NewsFeedCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
         commonInit()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
+        
         commonInit()
     }
     
@@ -49,6 +51,7 @@ final class NewsFeedCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        
         imageView.image = nil
         label.text = nil
         imageFetchTask?.cancel()
