@@ -9,40 +9,66 @@ import Combine
 import UIKit
 
 final class GalleryCompositionLayout: UICollectionViewCompositionalLayout {
-    private enum Constants {
-        static let inset: CGFloat = 16
+    typealias LayoutHandler = NSCollectionLayoutSectionVisibleItemsInvalidationHandler
+    
+    private struct Config {
+        static let sectionSpacing: CGFloat = 16
     }
-
-    init(layoutHandler: @escaping NSCollectionLayoutSectionVisibleItemsInvalidationHandler) {
-        let itemSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1.0),
-            heightDimension: .fractionalHeight(1.0))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        let inset = Constants.inset
-        item.contentInsets = .init(top: inset,
-                                   leading: inset,
-                                   bottom: inset,
-                                   trailing: inset)
+    
+    private enum Section: Int {
+        case main
         
-        let groupSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1.0),
-            heightDimension: .fractionalHeight(1.0))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
-                                                       repeatingSubitem: item,
-                                                       count: 1)
-        
-        let section = NSCollectionLayoutSection(group: group)
-        section.orthogonalScrollingBehavior = .groupPaging
-        section.visibleItemsInvalidationHandler = layoutHandler
-        
+        public init?(rawValue: Int) {
+            switch rawValue {
+            case 0: self = .main
+            default: return nil
+            }
+        }
+    }
+    
+    convenience init(layoutHandler: @escaping LayoutHandler) {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         configuration.scrollDirection = .vertical
         
-        super.init(section: section,
-                   configuration: configuration)
+        self.init(sectionProvider: { section, _ in
+            Self.sectionProvider(section: section,
+                                 layoutHandler: layoutHandler)
+        }, configuration: configuration)
+    }
+}
+
+extension GalleryCompositionLayout {
+    private static func sectionProvider(section: Int,
+                                layoutHandler: LayoutHandler?) -> NSCollectionLayoutSection? {
+        guard let section = Section(rawValue: section) else { return nil }
+        return configureSection(section, layoutHandler: layoutHandler)
     }
     
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    private static func configureSection(_ section: Section, layoutHandler: LayoutHandler? = nil) -> NSCollectionLayoutSection {
+        switch section {
+        case .main:
+            let inset = Config.sectionSpacing
+            let itemSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .fractionalHeight(1.0))
+            
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            item.contentInsets = .init(top: inset,
+                                       leading: inset,
+                                       bottom: inset,
+                                       trailing: inset)
+            
+            let groupSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .fractionalHeight(1.0))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
+                                                           repeatingSubitem: item,
+                                                           count: 1)
+            
+            let section = NSCollectionLayoutSection(group: group)
+            section.orthogonalScrollingBehavior = .groupPaging
+            section.visibleItemsInvalidationHandler = layoutHandler
+            return section
+        }
     }
 }

@@ -10,57 +10,48 @@ import Combine
 import UIKit
 
 final class GalleryViewModel {
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, URL>
-    typealias DataSource = UICollectionViewDiffableDataSource<Int, URL>
+    typealias DataSource = GalleryDiffableDataSource
+    typealias LayoutHandler = NSCollectionLayoutSectionVisibleItemsInvalidationHandler
     
     private var dataSource: DataSource?
-    private let imageURLs: [URL]
-    let subtitle: String?
-    var numberOfPagesSubject = CurrentValueSubject<Int, Never>(0)
-    var currentPageSubject = CurrentValueSubject<Int, Never>(0)
+    
+    public let imageURLs: [URL]
+    public let subtitle: String?
+    
+    public let currentPageSubject = CurrentValueSubject<Int, Never>(0)
     
     init(subtitle: String?, imageURLs: [URL]) {
         self.subtitle = subtitle
         self.imageURLs = imageURLs
-        numberOfPagesSubject.send(imageURLs.count)
     }
-    
-    func makeDataSource(_ collectionView: UICollectionView) -> DataSource {
+}
+
+extension GalleryViewModel {
+    public func onViewDidLoad() {
+        guard let snapshot = dataSource?.makeSnapshot(urls: imageURLs) else { return }
+        dataSource?.apply(snapshot)
+    }
+}
+
+extension GalleryViewModel {
+    public func makeDataSource(_ collectionView: UICollectionView) -> DataSource {
         let cellRegistration = UICollectionView.CellRegistration<GalleryItemCell, URL>(cellNib: UINib(nibName: GalleryItemCell.nibName, bundle: nil)) { (cell: GalleryItemCell, indexPath: IndexPath, url: URL) in
             let viewModel = GalleryItemViewModel(url: url)
-            cell.configure(with: viewModel)
+            cell.set(viewModel: viewModel)
         }
         
         let dataSource = GalleryDiffableDataSource(collectionView: collectionView, cellRegistration: cellRegistration)
         self.dataSource = dataSource
         return dataSource
     }
-    
-    func layoutHandler(visibleItems: [any NSCollectionLayoutVisibleItem],
-                       scrollOffset: CGPoint,
-                       layoutEnvironment: any NSCollectionLayoutEnvironment) {
-        guard let lastIndex = visibleItems.last?.indexPath.row else { return }
-        guard visibleItems.count > 1 else {
-            currentPageSubject.send(lastIndex)
-            return
+}
+
+extension GalleryViewModel {
+    public func configureInvalidation() -> LayoutHandler {
+        return { [weak self] (_ : [any NSCollectionLayoutVisibleItem], scrollOffset: CGPoint, layoutEnvironment: any NSCollectionLayoutEnvironment) in
+            let width = layoutEnvironment.container.contentSize.width
+            let index = Int((scrollOffset.x / width).rounded(.toNearestOrAwayFromZero))
+            self?.currentPageSubject.send(index)
         }
-        
-        let width = layoutEnvironment.container.contentSize.width
-        let itemOffset = Double(Int(scrollOffset.x) % Int(width))
-        let moreThenHalf = itemOffset > width / 2
-        let index = Int(floor(scrollOffset.x / width)) + (moreThenHalf ? 1 : 0)
-        currentPageSubject.send(index)
-    }
-    
-    func onViewDidLoad() {
-        dataSource?.apply(makeSnapshot(urls: imageURLs))
-    }
-    
-    // MARK: - Private
-    private func makeSnapshot(urls: [URL]) -> Snapshot {
-        var snapshot = Snapshot()
-        snapshot.appendSections([0])
-        snapshot.appendItems(urls.map { $0 })
-        return snapshot
     }
 }

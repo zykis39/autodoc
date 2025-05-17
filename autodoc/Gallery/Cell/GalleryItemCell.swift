@@ -9,7 +9,7 @@ import Combine
 import UIKit
 
 final class GalleryItemCell: UICollectionViewCell {
-    static let nibName = "GalleryItemCell"
+    public static let nibName = "GalleryItemCell"
     
     @IBOutlet var imageView: UIImageView!
     private var cancellables = Set<AnyCancellable>()
@@ -20,8 +20,10 @@ final class GalleryItemCell: UICollectionViewCell {
         imageView.image = nil
         cancellables.removeAll()
     }
-    
-    func configure(with viewModel: GalleryItemViewModel) {
+}
+
+extension GalleryItemCell {
+    public func set(viewModel: GalleryItemViewModel) {
         Task { [weak self] in
             let image = try? await viewModel.getImage()
             self?.imageView.image = image

@@ -9,7 +9,7 @@ import Combine
 import UIKit
 
 final class GalleryViewController: UIViewController {
-    private enum Constants {
+    private struct Config {
         static let pageControlHeight: CGFloat = 44
         static let hInset: CGFloat = 16
         static let backgroundColor: UIColor = UIColor.init(hex: "#121214FF")!
@@ -17,17 +17,20 @@ final class GalleryViewController: UIViewController {
         static let labelFontSize: CGFloat = 12
     }
     
-    private lazy var collectionViewLayout = GalleryCompositionLayout(layoutHandler: viewModel.layoutHandler)
+    private lazy var collectionViewLayout = GalleryCompositionLayout(layoutHandler: viewModel.configureInvalidation())
     private lazy var collectionView = UICollectionView(frame: .zero,
                                                        collectionViewLayout: collectionViewLayout)
-        .set(\.backgroundColor, to: Constants.backgroundColor)
+        .set(\.backgroundColor, to: Config.backgroundColor)
         .set(\.alwaysBounceVertical, to: false)
     private let subtitleLabel = UILabel()
         .set(\.numberOfLines, to: 0)
         .set(\.textAlignment, to: .center)
-        .set(\.textColor, to: Constants.labelTextColor)
-        .set(\.font, to: .systemFont(ofSize: Constants.labelFontSize))
+        .set(\.textColor, to: Config.labelTextColor)
+        .set(\.font, to: .systemFont(ofSize: Config.labelFontSize))
+    
+    // FIXME: ограничить кол-во точек
     private let pageControl = UIPageControl()
+        .set(\.hidesForSinglePage, to: true)
     private let viewModel: GalleryViewModel!
     private var cancellables: Set<AnyCancellable> = []
     
@@ -50,12 +53,13 @@ final class GalleryViewController: UIViewController {
     
     // MARK: - Private
     private func setup() {
-        view.backgroundColor = Constants.backgroundColor
+        view.backgroundColor = Config.backgroundColor
         [collectionView, subtitleLabel, pageControl].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
         subtitleLabel.text = viewModel.subtitle
+        pageControl.numberOfPages = viewModel.imageURLs.count
         setupCollectionView()
         setupBindings()
         setupLayout()
@@ -66,19 +70,6 @@ final class GalleryViewController: UIViewController {
     }
     
     private func setupBindings() {
-        viewModel.numberOfPagesSubject
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] numberOfPages in
-                self?.pageControl.numberOfPages = numberOfPages
-            }
-            .store(in: &cancellables)
-        viewModel.numberOfPagesSubject
-            .receive(on: DispatchQueue.main)
-            .map { $0 < 2 }
-            .sink { [weak self] isHidden in
-                self?.pageControl.isHidden = isHidden
-            }
-            .store(in: &cancellables)
         viewModel.currentPageSubject
             .receive(on: DispatchQueue.main)
             .sink { [weak self] currentPage in
@@ -97,8 +88,8 @@ final class GalleryViewController: UIViewController {
         
         let slTopConstraint = subtitleLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor)
         let slBottomConstraint = subtitleLabel.bottomAnchor.constraint(equalTo: pageControl.safeAreaLayoutGuide.topAnchor)
-        let slLeadingConstraint = subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.hInset)
-        let slTrailingConstraint = subtitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.hInset)
+        let slLeadingConstraint = subtitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Config.hInset)
+        let slTrailingConstraint = subtitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Config.hInset)
         let slConstraints = [slTopConstraint, slBottomConstraint, slLeadingConstraint, slTrailingConstraint]
         view.addConstraints(slConstraints)
         slConstraints.forEach { $0.isActive = true }
@@ -106,7 +97,7 @@ final class GalleryViewController: UIViewController {
         let pcBottomConstraint = pageControl.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         let pcLeadingConstraint = pageControl.leadingAnchor.constraint(equalTo: view.leadingAnchor)
         let pcTrailingConstraint = pageControl.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        let pcHeightConstraint = pageControl.heightAnchor.constraint(equalToConstant: Constants.pageControlHeight)
+        let pcHeightConstraint = pageControl.heightAnchor.constraint(equalToConstant: Config.pageControlHeight)
         let pcConstraints = [pcBottomConstraint, pcLeadingConstraint, pcTrailingConstraint, pcHeightConstraint]
         view.addConstraints(pcConstraints)
         pcConstraints.forEach { $0.isActive = true }
